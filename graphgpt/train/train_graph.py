@@ -561,6 +561,7 @@ class LazySupervisedDataset(Dataset):
 
     def __getitem__(self, i) -> Dict[str, torch.Tensor]:
         sources = self.list_data_dict[i]
+        index = self.list_data_dict["index"]
         if isinstance(i, int):
             sources = [sources]
         assert len(sources) == 1, "Don't know why it is wrapped to a list"  # FIXME
@@ -571,7 +572,7 @@ class LazySupervisedDataset(Dataset):
         if isinstance(i, int):
             data_dict = dict(input_ids=data_dict["input_ids"][0],
                              labels=data_dict["labels"][0])
-        data_dict['graph_data'] = self.graph_data_all[i]
+        data_dict['graph_data'] = self.graph_data_all[index]
         return data_dict
     
 class LazySupervisedDataset_back(Dataset):

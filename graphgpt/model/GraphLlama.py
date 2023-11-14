@@ -50,7 +50,8 @@ class GraphPretrainConfig:
 
 def load_model_pretrained(model_name, pretrain_model_path): 
     # load conig json
-    
+    print("Config:")
+    print(osp.join(pretrain_model_path, 'config.json'))
     assert osp.exists(osp.join(pretrain_model_path, 'config.json')), 'config.json missing'
     with open(osp.join(pretrain_model_path, 'config.json'), 'r') as f:
         config_dict = json.load(f)

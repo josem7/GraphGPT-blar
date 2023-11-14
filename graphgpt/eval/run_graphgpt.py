@@ -32,19 +32,11 @@ DEFAULT_G_END_TOKEN = "<g_end>"
 
 def load_graph(instruct_item, graph_data_path): 
     graph_data_all = torch.load(graph_data_path)
-    graph_dict = instruct_item['graph']
-    graph_edge_index = torch.Tensor(copy.deepcopy(graph_dict['edge_index'])).long()
-    graph_node_list = copy.deepcopy(graph_dict['node_list'])
-    target_node = copy.deepcopy(graph_dict['node_idx'])
-    graph_type = copy.deepcopy(instruct_item['id']).split('_')[0]
-    graph_node_rep = graph_data_all[graph_type].x[graph_node_list] ## 
-    
-    cur_token_len = len(graph_node_rep)   # FIXME: 14 is hardcoded patch size
-
-    graph_ret = Data(graph_node = graph_node_rep, edge_index=graph_edge_index, target_node = torch.tensor([target_node]))
-
+    graph_indexes = instruct_item['index']
+    graph_data = [graph_data_all[int(i)] for i in graph_indexes]
+    cur_token_len = len(graph_data)   # FIXME: 14 is hardcoded patch size
     return {
-        'graph_data': graph_ret, 
+        'graph_data': graph_data, 
         'graph_token_len': cur_token_len
     }
 
@@ -126,7 +118,7 @@ def eval_model(args, prompt_file, start_idx, end_idx):
     # TODO: add graph tower
     # if graph_tower.device.type == 'meta':
     #     print('meta')
-    clip_graph, args_graph= load_model_pretrained(CLIP, './clip_gt_arxiv_pub')
+    clip_graph, args_graph= load_model_pretrained(CLIP, '/content/Arxiv-PubMed-GraphCLIP-GT')
     graph_tower = graph_transformer(args_graph)
     graph_tower = transfer_param_tograph(clip_graph, graph_tower)
     
@@ -152,7 +144,7 @@ def eval_model(args, prompt_file, start_idx, end_idx):
         graph_token_len = graph_dict['graph_token_len']
         graph_data = graph_dict['graph_data']
 
-        qs = instruct_item["conversations"][0]["value"]
+        qs = instruct_item["conversation"][0]["value"]
         # if use_graph_start_end:
         #     qs = qs + '\n' + DEFAULT_G_START_TOKEN + DEFAULT_GRAPH_PATCH_TOKEN * graph_token_len + DEFAULT_G_END_TOKEN
         # else:
