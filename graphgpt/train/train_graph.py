@@ -792,6 +792,8 @@ def train():
             padding_side="right",
             use_fast=False,
         )
+    tokenizer.add_tokens(["<TABLE>", "<COLUMN>"])
+    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
     if model_args.version == "v0":
         if tokenizer.pad_token is None:
@@ -807,7 +809,7 @@ def train():
                 "unk_token": DEFAULT_UNK_TOKEN,
             })
     else:
-        tokenizer.pad_token = tokenizer.unk_token
+        tokenizer.pad_token = '[PAD]'
         conversation_lib.default_conversation = conversation_lib.conv_templates["vicuna_v1_1"]
 
     if model_args.graph_tower is not None:

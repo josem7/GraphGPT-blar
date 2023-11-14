@@ -102,6 +102,8 @@ def eval_model(args, prompt_file, start_idx, end_idx):
     # model_name = os.path.expanduser(args.model_name)
     print('start loading')
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    tokenizer.add_tokens(["<TABLE>", "<COLUMN>"])
+    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     print('finish loading')
 
     print('start loading')
