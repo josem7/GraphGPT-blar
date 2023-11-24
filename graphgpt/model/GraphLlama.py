@@ -212,7 +212,7 @@ class GraphLlamaModel(LlamaModel):
                         for g in graph_data:
                             # print(g)
                             node_forward_out, name = graph_tower(g)
-                            print(self.embed_tokens(name))
+                            print(self.embed_tokens(name).shape)
                             graph_node_features.append(torch.concat((node_forward_out, name), dim = 1))
                     elif type(graph_data[0]) is dict:
                         for g_dict in graph_data:
