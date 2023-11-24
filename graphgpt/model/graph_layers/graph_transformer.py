@@ -3,6 +3,8 @@ from torch import nn
 import torch.nn.functional as F
 import math
 from transformers.configuration_utils import PretrainedConfig
+from collections import OrderedDict
+
 
 init = nn.init.xavier_uniform_
 uniformInit = nn.init.uniform
@@ -94,6 +96,7 @@ class graph_transformer(nn.Module):
     def __init__(self, args):
         super(graph_transformer, self).__init__()
         self.config = PretrainedConfig()
+        self.context_length = args.context_length
         self.gtLayers = nn.Sequential(*[GTLayer(args) for i in range(args.gt_layers)])
         self.token_embedding = nn.Embedding(
             args.vocab_size, args.transformer_width
