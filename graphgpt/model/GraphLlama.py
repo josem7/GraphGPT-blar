@@ -212,13 +212,14 @@ class GraphLlamaModel(LlamaModel):
                         for g in graph_data:
                             # print(g)
                             node_forward_out, name = graph_tower(g)
-                            graph_node_features.append(torch.concat((node_forward_out, self.embed_tokens(name).bfloat16()), dim = 1))
+                            print(self.embed_tokens(name))
+                            graph_node_features.append(torch.concat((node_forward_out, name), dim = 1))
                     elif type(graph_data[0]) is dict:
                         for g_dict in graph_data:
                             node_forward_out_1, name = graph_tower(g_dict['graph_1'])
                             node_forward_out_2, name = graph_tower(g_dict['graph_2'])
-                            graph_node_features.append(torch.concat((node_forward_out_1, self.embed_tokens(name).bfloat16()), dim = 1))
-                            graph_node_features.append(torch.concat((node_forward_out_2, self.embed_tokens(name).bfloat16()), dim = 1))
+                            graph_node_features.append(torch.concat((node_forward_out_1, name), dim = 1))
+                            graph_node_features.append(torch.concat((node_forward_out_2, name), dim = 1))
                 else:
                     raise ValueError(f'graph_node_reps is expected to be a list but got {type(graph_data)}')
             if type(graph_data) is list:
