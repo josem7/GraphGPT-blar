@@ -748,6 +748,7 @@ def train():
         model = transformers.LlamaForCausalLM.from_pretrained(
             model_args.model_name_or_path,
             cache_dir=training_args.cache_dir,
+            ignore_mismatched_sizes=True,
             **bnb_model_from_pretrained_args
         )
     model.config.pretrain_graph_model_path = model.config.pretrain_graph_model_path + model_args.graph_tower
