@@ -62,7 +62,7 @@ class graph_transformer(nn.Module):
         # print(edge_index)
         device = self.parameters().__next__().device
         g = g.to(device)
-        name = x[-40:]
+        name = g.x[-40:]
         x = g.x.bfloat16()
         # x, W_P_weight, W_P_bias= Mv2Samedevice([x, self.W_P.weight, self.W_P.bias])
         # self.W_P.weight = nn.Parameter(W_P_weight.to(x.dtype))
