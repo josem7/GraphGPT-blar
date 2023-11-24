@@ -230,6 +230,7 @@ class GraphLlamaModel(LlamaModel):
             else:
                 raise ValueError(f'graph_node_reps is expected to be a list but got {type(graph_data)}')
             print(graph_node_features[0].shape)
+            print(inputs_embeds.shape)
             dummy_graph_features = torch.zeros(256, 168, device=inputs_embeds.device, dtype=inputs_embeds.dtype)
             dummy_graph_features = self.graph_projector(dummy_graph_features)
 
@@ -239,6 +240,7 @@ class GraphLlamaModel(LlamaModel):
                 if (cur_input_ids == graph_tower.config.graph_patch_token).sum() == 0:
                     # multimodal LLM, but the current sample is not multimodal
                     cur_input_embeds = cur_input_embeds + (0. * dummy_graph_features).sum()
+                    print(cur_input_embeds.shape)
                     new_input_embeds.append(cur_input_embeds)
                     cur_graph_idx += 1
                     continue
