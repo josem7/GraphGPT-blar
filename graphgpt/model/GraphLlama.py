@@ -238,7 +238,7 @@ class GraphLlamaModel(LlamaModel):
                 if (cur_input_ids == graph_tower.config.graph_patch_token).sum() == 0:
                     # multimodal LLM, but the current sample is not multimodal
                     cur_input_embeds = cur_input_embeds + (0. * dummy_graph_features).sum()
-                    print(cur_input_embeds.shape)
+                    # print(cur_input_embeds.shape)
                     new_input_embeds.append(cur_input_embeds)
                     cur_graph_idx += 1
                     continue
