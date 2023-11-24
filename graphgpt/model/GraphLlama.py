@@ -114,7 +114,7 @@ class GraphLlamaModel(LlamaModel):
             
 
             # self.vision_tower = CLIPVisionModel.from_pretrained(config.mm_vision_tower)
-
+        config.graph_hidden_size = 168
         if hasattr(config, "use_graph_proj"):
             self.graph_projector = nn.Linear(config.graph_hidden_size, config.hidden_size)
 
@@ -212,7 +212,6 @@ class GraphLlamaModel(LlamaModel):
                         for g in graph_data:
                             # print(g)
                             node_forward_out, name = graph_tower(g)
-                            print(self.embed_tokens(name).shape)
                             graph_node_features.append(torch.concat((node_forward_out, name), dim = 1))
                     elif type(graph_data[0]) is dict:
                         for g_dict in graph_data:
