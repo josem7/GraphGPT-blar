@@ -92,19 +92,24 @@ class GraphLlamaModel(LlamaModel):
                 clip_graph, args= load_model_pretrained(CLIP, config.pretrain_graph_model_path)
                 self.graph_tower = GNN(args)
                 self.graph_tower = transfer_param_tograph(clip_graph, self.graph_tower)
+                self.clip_graph = clip_graph
             elif config.graph_tower == "clip_gt":
                 clip_graph, args= load_model_pretrained(CLIP, config.pretrain_graph_model_path) 
                 self.graph_tower = graph_transformer(args)
                 self.graph_tower = transfer_param_tograph(clip_graph, self.graph_tower)
+                self.clip_graph = clip_graph
             elif config.graph_tower == "clip_gt_arxiv": 
                 clip_graph, args= load_model_pretrained(CLIP, config.pretrain_graph_model_path) 
                 self.graph_tower = graph_transformer(args)
                 self.graph_tower = transfer_param_tograph(clip_graph, self.graph_tower)
+                self.clip_graph = clip_graph
             elif config.graph_tower == "clip_gt_arxiv_pub":
                 print(config.pretrain_graph_model_path) 
                 clip_graph, args= load_model_pretrained(CLIP, "/content/Arxiv-PubMed-GraphCLIP-GT") 
                 self.graph_tower = graph_transformer(args)
                 self.graph_tower = transfer_param_tograph(clip_graph, self.graph_tower)
+                self.clip_graph = clip_graph
+
 
             
 
@@ -132,19 +137,24 @@ class GraphLlamaModel(LlamaModel):
                 clip_graph, args= load_model_pretrained(CLIP, self.config.pretrain_graph_model_path)
                 graph_tower = GNN(args)
                 graph_tower = transfer_param_tograph(clip_graph, graph_tower)
+                self.clip_graph = clip_graph
             elif self.config.graph_tower == "clip_gt":
                 clip_graph, args= load_model_pretrained(CLIP, self.config.pretrain_graph_model_path) 
                 graph_tower = graph_transformer(args)
                 graph_tower = transfer_param_tograph(clip_graph, graph_tower)
+                self.clip_graph = clip_graph
             # graph_tower = MPNN(in_channels = self.config.graph_hidden_size, hidden_channels = self.config.graph_hidden_size * 2, out_channels = self.config.graph_hidden_size, dropout = 0.1, num_layers = 2)
             elif self.config.graph_tower == "clip_gt_arxiv":
                 clip_graph, args= load_model_pretrained(CLIP, self.config.pretrain_graph_model_path) 
                 graph_tower = graph_transformer(args)
                 graph_tower = transfer_param_tograph(clip_graph, graph_tower)
+                self.clip_graph = clip_graph
             elif self.config.graph_tower == "clip_gt_arxiv_pub":
                 clip_graph, args= load_model_pretrained(CLIP, self.config.pretrain_graph_model_path) 
                 graph_tower = graph_transformer(args)
                 graph_tower = transfer_param_tograph(clip_graph, graph_tower)
+                self.clip_graph = clip_graph
+
         else:
             graph_tower = self.graph_tower
         graph_tower.requires_grad_(False)
