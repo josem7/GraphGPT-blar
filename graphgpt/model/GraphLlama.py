@@ -171,7 +171,8 @@ class GraphLlamaModel(LlamaModel):
 
         if not hasattr(self, 'graph_projector'):
             self.graph_projector = nn.Linear(self.config.graph_hidden_size, self.config.hidden_size)
-
+        print(pretrain_graph_mlp_adapter)
+        pretrain_graph_mlp_adapter = None
         if pretrain_graph_mlp_adapter is not None:
             graph_projector_weights = torch.load(pretrain_graph_mlp_adapter, map_location='cpu')
             self.graph_projector.load_state_dict({k.split('.')[-1]: v for k, v in graph_projector_weights.items()})
