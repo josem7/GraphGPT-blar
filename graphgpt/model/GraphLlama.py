@@ -218,7 +218,7 @@ class GraphLlamaModel(LlamaModel):
                             node_forward_out_1, name = graph_tower(g_dict['graph_1'])
                             node_forward_out_2, name = graph_tower(g_dict['graph_2'])
                             graph_node_features.append(torch.concat(node_forward_out_1, self.embed_tokens(name).bfloat16()))
-                            graph_node_features.append(torch.concat(node_forward_out_2, self.embed_tokens(name).bfloat16())
+                            graph_node_features.append(torch.concat(node_forward_out_2, self.embed_tokens(name).bfloat16()))
                 else:
                     raise ValueError(f'graph_node_reps is expected to be a list but got {type(graph_data)}')
             if type(graph_data) is list:
