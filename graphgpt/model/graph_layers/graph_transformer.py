@@ -1,4 +1,4 @@
-import t as t
+import torch as t
 from torch import nn
 import torch.nn.functional as F
 import math
