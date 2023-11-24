@@ -1,6 +1,6 @@
 import t as t
-from t import nn
-import t.nn.functional as F
+from torch import nn
+import torch.nn.functional as F
 import math
 from transformers.configuration_utils import PretrainedConfig
 
