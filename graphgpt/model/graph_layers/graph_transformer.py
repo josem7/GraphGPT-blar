@@ -48,9 +48,6 @@ class graph_transformer(nn.Module):
         super(graph_transformer, self).__init__()
         self.config = PretrainedConfig()
         self.gtLayers = nn.Sequential(*[GTLayer(args) for i in range(args.gt_layers)])
-        self.token_embedding = nn.Embedding(
-            args.vocab_size, args.transformer_width
-        )  # the embedding for all possible tokens
         self.W_pos = pos_encoding('zeros', True, 1, args.att_d_model)
                 
         self.W_P = nn.Linear(args.gnn_input, args.att_d_model)
