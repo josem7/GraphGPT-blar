@@ -3,6 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 import math
 from transformers.configuration_utils import PretrainedConfig
+from clip_graph import Transformer
 
 init = nn.init.xavier_uniform_
 uniformInit = nn.init.uniform
@@ -48,7 +49,17 @@ class graph_transformer(nn.Module):
         super(graph_transformer, self).__init__()
         self.config = PretrainedConfig()
         self.gtLayers = nn.Sequential(*[GTLayer(args) for i in range(args.gt_layers)])
-
+        self.token_embedding = nn.Embedding(
+            args.vocab_size, args.transformer_width
+        )  # the embedding for all possible tokens
+        self.positional_embedding = nn.Parameter(t.empty(self.context_length, args.transformer_width))
+        self.transformer = Transformer(
+            width=args.transformer_width,
+            layers=args.transformer_layers,
+            heads=args.transformer_heads,
+            attn_mask=self.build_attention_mask(),
+        )
+        self.text_projection = nn.Parameter(t.empty(args.transformer_width, args.embed_dim))
         self.W_pos = pos_encoding('zeros', True, 1, args.att_d_model)
                 
         self.W_P = nn.Linear(args.gnn_input, args.att_d_model)
@@ -56,6 +67,34 @@ class graph_transformer(nn.Module):
         self.inverW_P = nn.Linear(args.att_d_model, args.gnn_output)
         self.args = args
 
+    def encode_text(self, text):
+        x = self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
+
+        x = x + self.positional_embedding.type(self.dtype)
+        x = x.permute(
+            1, 0, 2
+        )  # NLD -> LND, batch_size * context_length *emb_dim -> context_length * batch_size  *emb_dim
+        x = self.transformer(x)
+        x = x.permute(
+            1, 0, 2
+        )  # LND -> NLD, context_length * batch_size *emb_dim -> batch_size * context_length *emb_dim
+        x = self.ln_final(x).type(self.dtype)
+        # x.shape = [batch_size, n_ctx, transformer.width]
+        # take features from the eot （end of token） embedding (eot_token is the highest number in each sequence)
+        # so there is node need to shorten the context length
+        x = x[t.arange(x.shape[0]), text.argmax(dim=-1)]  #
+        x = x @ self.text_projection
+        return x
+    
+    def build_attention_mask(self):
+        # lazily create causal attention mask, with full attention between the vision tokens
+        # pytorch uses additive attention mask; fill with -inf
+        mask = t.empty(self.context_length, self.context_length)
+        mask.fill_(float("-inf"))
+        mask.triu_(1)  # zero out the lower diagonal
+
+        return mask
+    
     def forward(self, g):
         # Adj: sp adj
         # x: bs * n * d_model * num_patch
@@ -65,7 +104,8 @@ class graph_transformer(nn.Module):
         g = g.to(device)
         
         x = g.x.bfloat16()
-        
+        name = x[-40:]
+        x = x.encode_text(x)
         # x, W_P_weight, W_P_bias= Mv2Samedevice([x, self.W_P.weight, self.W_P.bias])
         # self.W_P.weight = nn.Parameter(W_P_weight.to(x.dtype))
         # self.W_P.bias = nn.Parameter(W_P_bias.to(x.dtype))
@@ -80,7 +120,8 @@ class graph_transformer(nn.Module):
         # self.inverW_P.weight = nn.Parameter(inverW_P_weight.to(embeds.dtype))
         # self.inverW_P.bias = nn.Parameter(inverW_P_bias.to(embeds.dtype))
         ret = self.inverW_P(embeds)
-        return ret
+        return ret, name
+    
 def Mv2Samedevice(vars): 
     return [var.to(vars[0].device) for var in vars]
 

@@ -59,7 +59,7 @@ def load_model_pretrained(model_name, pretrain_model_path):
     model = model_name(args)
     pkl_files = glob.glob(osp.join(pretrain_model_path, '*.pkl'))
     state_dict = torch.load(pkl_files[0])
-    # print(state_dict.keys())
+    print(state_dict.keys())
     if 'logit_scale' in state_dict.keys(): 
         state_dict.pop('logit_scale')
     print('loading graph pre train model')
@@ -201,14 +201,14 @@ class GraphLlamaModel(LlamaModel):
                     if type(graph_data[0]) is Data:
                         for g in graph_data:
                             # print(g)
-                            node_forward_out = graph_tower(g)
-                            graph_node_features.append(node_forward_out)
+                            node_forward_out, name = graph_tower(g)
+                            graph_node_features.append(torch.concat(node_forward_out, name))
                     elif type(graph_data[0]) is dict:
                         for g_dict in graph_data:
-                            node_forward_out_1 = graph_tower(g_dict['graph_1'])
-                            node_forward_out_2 = graph_tower(g_dict['graph_2'])
-                            graph_node_features.append(node_forward_out_1)
-                            graph_node_features.append(node_forward_out_2)
+                            node_forward_out_1, name = graph_tower(g_dict['graph_1'])
+                            node_forward_out_2, name = graph_tower(g_dict['graph_2'])
+                            graph_node_features.append(torch.concat(node_forward_out_1, name))
+                            graph_node_features.append(torch.concat(node_forward_out_2,name))
                 else:
                     raise ValueError(f'graph_node_reps is expected to be a list but got {type(graph_data)}')
             if type(graph_data) is list:
