@@ -1,13 +1,59 @@
-import torch as t
-from torch import nn
-import torch.nn.functional as F
+import t as t
+from t import nn
+import t.nn.functional as F
 import math
 from transformers.configuration_utils import PretrainedConfig
-from graphgpt.model.graph_layers import Transformer
 
 init = nn.init.xavier_uniform_
 uniformInit = nn.init.uniform
+class LayerNorm(nn.LayerNorm):
+    """Subclass t's LayerNorm to handle fp16."""
 
+    def forward(self, x: t.Tensor):
+        orig_type = x.dtype
+        ret = super().forward(x.type(t.float32))
+        return ret.type(orig_type)
+
+
+class QuickGELU(nn.Module):
+    def forward(self, x: t.Tensor):
+        return x * t.sigmoid(1.702 * x)
+
+
+class ResidualAttentionBlock(nn.Module):
+    def __init__(self, d_model: int, n_head: int, attn_mask: t.Tensor = None):
+        super().__init__()
+
+        self.attn = nn.MultiheadAttention(d_model, n_head)
+        self.ln_1 = LayerNorm(d_model)
+        self.mlp = nn.Sequential(OrderedDict([
+            ("c_fc", nn.Linear(d_model, d_model * 4)),
+            ("gelu", QuickGELU()),
+            ("c_proj", nn.Linear(d_model * 4, d_model))
+        ]))
+        self.ln_2 = LayerNorm(d_model)
+        self.attn_mask = attn_mask
+
+    def attention(self, x: t.Tensor):
+        self.attn_mask = self.attn_mask.to(dtype=x.dtype, device=x.device) if self.attn_mask is not None else None
+        return self.attn(x, x, x, need_weights=False, attn_mask=self.attn_mask)[0]
+
+    def forward(self, x: t.Tensor):
+        x = x + self.attention(self.ln_1(x))
+        x = x + self.mlp(self.ln_2(x))
+        return x
+
+
+class Transformer(nn.Module):
+    def __init__(self, width: int, layers: int, heads: int, attn_mask: t.Tensor = None):
+        super().__init__()
+        self.width = width
+        self.layers = layers
+        self.resblocks = nn.Sequential(*[ResidualAttentionBlock(width, heads, attn_mask) for _ in range(layers)])
+
+    def forward(self, x: t.Tensor):
+        return self.resblocks(x)
+    
 def PositionalEncoding(q_len, d_model, normalize=True):
     pe = t.zeros(q_len, d_model)
     position = t.arange(0, q_len).unsqueeze(1)
@@ -88,7 +134,7 @@ class graph_transformer(nn.Module):
     
     def build_attention_mask(self):
         # lazily create causal attention mask, with full attention between the vision tokens
-        # pytorch uses additive attention mask; fill with -inf
+        # pyt uses additive attention mask; fill with -inf
         mask = t.empty(self.context_length, self.context_length)
         mask.fill_(float("-inf"))
         mask.triu_(1)  # zero out the lower diagonal
