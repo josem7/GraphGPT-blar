@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 import math
 from transformers.configuration_utils import PretrainedConfig
-from clip_graph import Transformer
+from graphgpt.model.graph_layers import Transformer
 
 init = nn.init.xavier_uniform_
 uniformInit = nn.init.uniform
