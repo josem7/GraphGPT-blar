@@ -79,7 +79,7 @@ class graph_transformer(nn.Module):
         # self.inverW_P.bias = nn.Parameter(inverW_P_bias.to(embeds.dtype))
         ret = self.inverW_P(embeds)
         print(ret)
-        print(x)
+        print(name)
         return ret, name
     
 def Mv2Samedevice(vars): 
