@@ -32,8 +32,8 @@ DEFAULT_G_END_TOKEN = "<g_end>"
 
 def load_graph(instruct_item, graph_data_path): 
     graph_data_all = torch.load(graph_data_path)
-    graph_indexes = instruct_item['index']
-    graph_data = [graph_data_all[int(i)] for i in graph_indexes]
+    graph_index = instruct_item['index']
+    graph_data = graph_data_all[int(graph_index)]
     cur_token_len = len(graph_data)   # FIXME: 14 is hardcoded patch size
     return {
         'graph_data': graph_data, 
@@ -181,7 +181,7 @@ def eval_model(args, prompt_file, start_idx, end_idx):
         keywords = [stop_str]
         stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
 
-        graph_data.graph_node = graph_data.graph_node.to(torch.float16)
+        graph_data.x = graph_data.x.to(torch.float16)
         # graph_data.edge_index = graph_data.edge_index.to(torch.float16)
 
         with torch.inference_mode():
@@ -204,7 +204,7 @@ def eval_model(args, prompt_file, start_idx, end_idx):
         outputs = outputs.strip()
         # print(outputs)
 
-        res_data.append({"id": instruct_item["id"], "node_idx": instruct_item["graph"]["node_idx"], "res": outputs}.copy())
+        res_data.append({"index": instruct_item["index"], "ans": instruct_item["conversation"][1]["value"], "res": outputs}.copy())
         with open(osp.join(args.output_res_path, 'arxiv_test_res_{}_{}.json'.format(start_idx, end_idx)), "w") as fout:
             json.dump(res_data, fout, indent=4)
     return res_data
